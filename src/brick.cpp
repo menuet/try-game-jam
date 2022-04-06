@@ -15,19 +15,69 @@
 
 namespace {
 
+struct Point
+{
+  double x;
+  double y;
+};
+
+struct Offset
+{
+  double dx;
+  double dy;
+};
+
+static constexpr double MicrosSecondsPerSecond = 1'000'000.0;
 static constexpr int Width = 200;
 static constexpr int Height = 100;
+static constexpr int CenterX = Width / 2;
+static constexpr int CenterY = Height / 2;
+static constexpr int EarthRadius = 10;
+static constexpr int ShieldRadius = 20;
+static constexpr int ShieldSpan = 10;
+static constexpr int MouseRatioX = 2;
+static constexpr int MouseRatioY = 4;
+static constexpr Point ShieldLeft{ -ShieldSpan, -ShieldRadius };
+static constexpr Point ShieldRight{ +ShieldSpan, -ShieldRadius };
+static constexpr Offset CenterOffset{ CenterX, CenterY };
+
+Point rotate(Point p, double angle) noexcept
+{
+  const auto co = std::cos(angle);
+  const auto si = std::sin(angle);
+  return { p.x * co - p.y * si, p.x * si + p.y * co };
+}
+
+Point translate(Point p, Offset offset) noexcept { return { p.x + offset.dx, p.y + offset.dy }; }
+
+struct Shield
+{
+  double angle = 0.0;
+  Point left{ translate(ShieldLeft, CenterOffset) };
+  Point right{ translate(ShieldRight, CenterOffset) };
+
+  void update(Point mouse)
+  {
+    if (std::abs(mouse.x - CenterOffset.dx) > 1)
+      angle = std::atan(mouse.y - CenterOffset.dy / mouse.x - CenterOffset.dx);
+    else
+      angle = 0.0;
+    left = translate(rotate(ShieldLeft, angle), CenterOffset);
+    right = translate(rotate(ShieldRight, angle), CenterOffset);
+  }
+
+  void draw(ftxui::Canvas &canvas) const { canvas.DrawBlockLine((int)left.x, (int)left.y, (int)right.x, (int)right.y); }
+};
 
 struct GameState
 {
   double fps = 0;
   int counter = 0;
   std::chrono::steady_clock::time_point last_time = std::chrono::steady_clock::now();
-  int mouse_x = 40;
-  int mouse_y = 20;
+  Point mouse{ CenterX, CenterY };
+  Shield shield{};
 };
 
-// to do, add total game time clock also, not just current elapsed time
 void update(GameState &state)
 {
   ++state.counter;
@@ -36,24 +86,31 @@ void update(GameState &state)
   state.last_time = new_time;
   state.fps = 1.0
               / (static_cast<double>(std::chrono::duration_cast<std::chrono::microseconds>(elapsed_time).count())
-                 / 1'000'000.0);// NOLINT magic numbers
+                 / MicrosSecondsPerSecond);
+  state.shield.update(state.mouse);
+}
+
+void draw(const GameState &state, ftxui::Canvas &canvas)
+{
+  canvas.DrawBlockCircleFilled(CenterX, CenterY, EarthRadius);
+  canvas.DrawPointCircle(CenterX, CenterY, ShieldRadius);
+  state.shield.draw(canvas);
 }
 
 auto draw(const GameState &state)
 {
   auto world = ftxui::Renderer([&] {
-    auto c = ftxui::Canvas(Width, Height);
-    c.DrawBlockEllipseFilled(Width / 2, Height / 2, state.mouse_x, state.mouse_y);
-    return ftxui::canvas(std::move(c));
+    auto canvas = ftxui::Canvas(Width, Height);
+    draw(state, canvas);
+    return ftxui::canvas(std::move(canvas));
   });
 
   return ftxui::hbox({ world->Render() | ftxui::borderDouble,
     ftxui::separator(),
-    ftxui::vbox(
-      { ftxui::text("Frame: " + std::to_string(state.counter)),
+    ftxui::vbox({ ftxui::text("Frame: " + std::to_string(state.counter)),
       ftxui::text("FPS: " + std::to_string(state.fps)),
-      ftxui::text("MX: " + std::to_string(state.mouse_x)),
-      ftxui::text("MY: " + std::to_string(state.mouse_y)) }) });
+      ftxui::text("MX: " + std::to_string(state.mouse.x)),
+      ftxui::text("MY: " + std::to_string(state.mouse.y)) }) });
 }
 
 }// namespace
@@ -71,8 +128,8 @@ void brick()
 
   auto events_catcher = ftxui::CatchEvent(renderer, [&](ftxui::Event e) {
     if (e.is_mouse()) {
-      state.mouse_x = e.mouse().x;
-      state.mouse_y = e.mouse().y;
+      state.mouse.x = e.mouse().x * MouseRatioX;
+      state.mouse.y = e.mouse().y * MouseRatioY;
     }
     return false;
   });
