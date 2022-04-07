@@ -3,6 +3,8 @@
 #include <iostream>
 #include <random>
 #include <vector>
+#include <numbers>
+#include <algorithm>
 
 #include <ftxui/component/captured_mouse.hpp>// for ftxui
 #include <ftxui/component/component.hpp>// for Slider
@@ -33,8 +35,7 @@ struct Offset
 static constexpr double MicrosSecondsPerSecond = 1'000'000.0;
 static constexpr int UniverseWidth = 200;
 static constexpr int UniverseHeight = 100;
-static constexpr int CenterX = UniverseWidth / 2;
-static constexpr int CenterY = UniverseHeight / 2;
+static constexpr Point EarthCenter{ UniverseWidth / 2, UniverseHeight / 2 };
 static constexpr int EarthRadius = 10;
 static constexpr int ShieldRadius = 20;
 static constexpr int ShieldSpan = 10;
@@ -42,7 +43,7 @@ static constexpr int MouseRatioX = 2;
 static constexpr int MouseRatioY = 4;
 static constexpr Point ShieldLeft{ -ShieldSpan, -ShieldRadius };
 static constexpr Point ShieldRight{ +ShieldSpan, -ShieldRadius };
-static constexpr Offset CenterOffset{ CenterX, CenterY };
+static constexpr Offset CenterOffset{ EarthCenter.x, EarthCenter.y };
 static constexpr int AsteroidRadius = 2;
 static constexpr auto FrameInterval = 50ms;
 
@@ -55,6 +56,14 @@ Point rotate(Point p, double angle) noexcept
 
 Point translate(Point p, Offset offset) noexcept { return { p.x + offset.dx, p.y + offset.dy }; }
 
+auto distance(Point p1, Point p2) noexcept
+{
+  const auto diffX = p2.x - p1.x;
+  const auto diffY = p2.y - p1.y;
+  const auto dist = std::sqrt(diffX * diffX + diffY * diffY);
+  return dist;
+}
+
 class Shield
 {
   double angle = 0.0;
@@ -64,23 +73,23 @@ class Shield
 public:
   void update(Point mouse)
   {
-    angle = std::atan2(mouse.y - CenterOffset.dy, mouse.x - CenterOffset.dx);
+    angle = std::atan2(mouse.y - CenterOffset.dy, mouse.x - CenterOffset.dx) + std::numbers::pi / 2;
     left = translate(rotate(ShieldLeft, angle), CenterOffset);
     right = translate(rotate(ShieldRight, angle), CenterOffset);
   }
 
   void draw(ftxui::Canvas &canvas) const { canvas.DrawBlockLine((int)left.x, (int)left.y, (int)right.x, (int)right.y); }
 
-  bool isNear(const Point &point, double& distanceToShield, double& distanceToLeft, double& distanceToRight) const
+  bool isNear(const Point &point, double &distanceToShield, double &distanceToLeft, double &distanceToRight) const
   {
     const auto m = (right.y - left.y) / (right.x - left.x);
     const auto num = std::abs(-m * point.x + 1 * point.y - left.y + m * left.x);
     const auto den = std::sqrt(-m * -m + 1 * 1);
     distanceToShield = num / den;
 
-    distanceToLeft = std::sqrt((point.x - left.x) * (point.x - left.x) + (point.y - left.y) * (point.y - left.y));
+    distanceToLeft = distance(point, left);
 
-    distanceToRight = std::sqrt((point.x - right.x) * (point.x - right.x) + (point.y - right.y) * (point.y - right.y));
+    distanceToRight = distance(point, right);
 
     if (distanceToShield > 2.0) return false;
     if (distanceToLeft > ShieldSpan * 2) return false;
@@ -92,8 +101,8 @@ public:
 
 struct Asteroid
 {
-  Point position{ .x = 20, .y = 0. };
-  Offset velocity{ .dx = 1.0, .dy = 1.0 };
+  Point position{};
+  Offset velocity{};
   double distanceToShield{};
   double distanceToLeft{};
   double distanceToRight{};
@@ -129,10 +138,14 @@ class GameState
   int counter = 0;
   std::chrono::steady_clock::time_point last_time = std::chrono::steady_clock::now();
   std::chrono::steady_clock::time_point last_asteroid_time = last_time;
-  Point mouse{ CenterX, CenterY };
+  Point mouse{ EarthCenter };
   Shield shield{};
-  std::vector<Asteroid> asteroids{ {} };
+  std::vector<Asteroid> asteroids{
+    { { .x = 20, .y = 0. }, { .dx = 1.0, .dy = 1.0 } },
+    { { .x = 80, .y = UniverseHeight }, { .dx = 1.0, .dy = -1.0 } },
+  };
   bool pause{};
+  bool end{};
 
 public:
   void onEvent(ftxui::Event &e)
@@ -146,6 +159,7 @@ public:
 
   void update()
   {
+    if (end) return;
     if (pause) return;
     ++counter;
     const auto new_time = std::chrono::steady_clock::now();
@@ -158,16 +172,20 @@ public:
     if (new_time - last_asteroid_time < FrameInterval) return;
     last_asteroid_time = new_time;
     for (auto &asteroid : asteroids) asteroid.update(shield);
+    end = std::any_of(std::begin(asteroids), std::end(asteroids), [](const auto &a) {
+      return distance(a.position, EarthCenter) < EarthRadius;
+    });
   }
 
   auto draw() const
   {
     auto universeComponent = ftxui::Renderer([&] {
       auto canvas = ftxui::Canvas(UniverseWidth, UniverseHeight);
-      canvas.DrawBlockCircleFilled(CenterX, CenterY, EarthRadius);
-      canvas.DrawPointCircle(CenterX, CenterY, ShieldRadius);
+      canvas.DrawBlockCircleFilled(EarthCenter.x, EarthCenter.y, EarthRadius);
+      canvas.DrawPointCircle(EarthCenter.x, EarthCenter.y, ShieldRadius);
       shield.draw(canvas);
       for (const auto &asteroid : asteroids) asteroid.draw(canvas);
+      if (end) canvas.DrawText(UniverseWidth / 2 - 20, UniverseHeight / 2, "BOOOOOOOOOOOOOOOOOOOOOOM", ftxui::Color::Red);
       return ftxui::canvas(std::move(canvas));
     });
 
