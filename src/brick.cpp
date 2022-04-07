@@ -1,10 +1,10 @@
-﻿#include <array>
+﻿#include <algorithm>
+#include <array>
 #include <functional>
 #include <iostream>
+#include <numbers>
 #include <random>
 #include <vector>
-#include <numbers>
-#include <algorithm>
 
 #include <ftxui/component/captured_mouse.hpp>// for ftxui
 #include <ftxui/component/component.hpp>// for Slider
@@ -33,11 +33,11 @@ struct Offset
 };
 
 static constexpr double MicrosSecondsPerSecond = 1'000'000.0;
-static constexpr int UniverseWidth = 200;
-static constexpr int UniverseHeight = 100;
+static constexpr int UniverseWidth = 300;
+static constexpr int UniverseHeight = 150;
 static constexpr Point EarthCenter{ UniverseWidth / 2, UniverseHeight / 2 };
-static constexpr int EarthRadius = 10;
-static constexpr int ShieldRadius = 20;
+static constexpr int EarthRadius = 30;
+static constexpr int ShieldRadius = EarthRadius + 10;
 static constexpr int ShieldSpan = 10;
 static constexpr int MouseRatioX = 2;
 static constexpr int MouseRatioY = 4;
@@ -82,16 +82,19 @@ public:
 
   bool isNear(const Point &point, double &distanceToShield, double &distanceToLeft, double &distanceToRight) const
   {
-    const auto m = (right.y - left.y) / (right.x - left.x);
-    const auto num = std::abs(-m * point.x + 1 * point.y - left.y + m * left.x);
-    const auto den = std::sqrt(-m * -m + 1 * 1);
-    distanceToShield = num / den;
+    if (right.x != left.x) {
+      const auto m = (right.y - left.y) / (right.x - left.x);
+      const auto num = std::abs(-m * point.x + 1 * point.y - left.y + m * left.x);
+      const auto den = std::sqrt(-m * -m + 1 * 1);
+      distanceToShield = num / den;
+    } else
+      distanceToShield = std::abs(point.x - left.x);
 
     distanceToLeft = distance(point, left);
 
     distanceToRight = distance(point, right);
 
-    if (distanceToShield > 2.0) return false;
+    if (distanceToShield > AsteroidRadius) return false;
     if (distanceToLeft > ShieldSpan * 2) return false;
     if (distanceToRight > ShieldSpan * 2) return false;
 
@@ -107,6 +110,7 @@ struct Asteroid
   double distanceToLeft{};
   double distanceToRight{};
 
+public:
   void update(const Shield &shield)
   {
     position.x += velocity.dx;
@@ -132,26 +136,46 @@ struct Asteroid
   void draw(ftxui::Canvas &canvas) const { canvas.DrawBlockCircle((int)position.x, (int)position.y, AsteroidRadius); }
 };
 
-class GameState
+class Earth
+{
+  bool is_destroyed{};
+
+public:
+  bool update(const std::vector<Asteroid> &asteroids)
+  {
+    is_destroyed = std::any_of(std::begin(asteroids), std::end(asteroids), [](const auto &a) {
+      return distance(a.position, EarthCenter) <= EarthRadius + AsteroidRadius;
+    });
+    return !is_destroyed;
+  }
+
+  void draw(ftxui::Canvas &canvas) const
+  {
+    canvas.DrawBlockCircleFilled((int)EarthCenter.x, (int)EarthCenter.y, EarthRadius);
+    canvas.DrawPointCircle((int)EarthCenter.x, (int)EarthCenter.y, ShieldRadius);
+    if (is_destroyed)
+      canvas.DrawText((int)EarthCenter.x - 20, (int)EarthCenter.y, "BOOOOOOOOOOOOOOOOOOOOOOM", ftxui::Color::Red);
+  }
+};
+
+class Universe
 {
   double fps = 0;
   int counter = 0;
   std::chrono::steady_clock::time_point last_time = std::chrono::steady_clock::now();
   std::chrono::steady_clock::time_point last_asteroid_time = last_time;
-  Point mouse{ EarthCenter };
+  Point mouse{};
+  Earth earth{};
   Shield shield{};
   std::vector<Asteroid> asteroids{
-    { { .x = 20, .y = 0. }, { .dx = 1.0, .dy = 1.0 } },
-    { { .x = 80, .y = UniverseHeight }, { .dx = 1.0, .dy = -1.0 } },
+    { { .x = EarthCenter.x / 2, .y = 0. }, { .dx = 1.0, .dy = 1.0 } },
+    { { .x = EarthCenter.x * 3 / 2, .y = UniverseHeight }, { .dx = 1.0, .dy = -1.0 } },
   };
-  bool pause{};
-  bool end{};
 
 public:
   void onEvent(ftxui::Event &e)
   {
     if (e.is_mouse()) {
-      pause = (e.mouse().button & ftxui::Mouse::Left) != 0;
       mouse.x = e.mouse().x * MouseRatioX;
       mouse.y = e.mouse().y * MouseRatioY;
     }
@@ -159,8 +183,8 @@ public:
 
   void update()
   {
-    if (end) return;
-    if (pause) return;
+    if (!earth.update(asteroids)) return;
+
     ++counter;
     const auto new_time = std::chrono::steady_clock::now();
     const auto elapsed_time = new_time - last_time;
@@ -168,36 +192,29 @@ public:
     fps = 1.0
           / (static_cast<double>(std::chrono::duration_cast<std::chrono::microseconds>(elapsed_time).count())
              / MicrosSecondsPerSecond);
+
     shield.update(mouse);
+
     if (new_time - last_asteroid_time < FrameInterval) return;
     last_asteroid_time = new_time;
+
     for (auto &asteroid : asteroids) asteroid.update(shield);
-    end = std::any_of(std::begin(asteroids), std::end(asteroids), [](const auto &a) {
-      return distance(a.position, EarthCenter) < EarthRadius;
-    });
   }
 
   auto draw() const
   {
     auto universeComponent = ftxui::Renderer([&] {
       auto canvas = ftxui::Canvas(UniverseWidth, UniverseHeight);
-      canvas.DrawBlockCircleFilled(EarthCenter.x, EarthCenter.y, EarthRadius);
-      canvas.DrawPointCircle(EarthCenter.x, EarthCenter.y, ShieldRadius);
+      earth.draw(canvas);
       shield.draw(canvas);
       for (const auto &asteroid : asteroids) asteroid.draw(canvas);
-      if (end) canvas.DrawText(UniverseWidth / 2 - 20, UniverseHeight / 2, "BOOOOOOOOOOOOOOOOOOOOOOM", ftxui::Color::Red);
       return ftxui::canvas(std::move(canvas));
     });
 
     return ftxui::hbox({ universeComponent->Render() | ftxui::borderDouble,
       ftxui::separator(),
       ftxui::vbox({ ftxui::text("Frame: " + std::to_string(counter)),
-        ftxui::text("FPS: " + std::to_string(fps)),
-        ftxui::text("MX: " + std::to_string(mouse.x)),
-        ftxui::text("MY: " + std::to_string(mouse.y)),
-        ftxui::text("DtoS: " + std::to_string(asteroids[0].distanceToShield)),
-        ftxui::text("DtoL: " + std::to_string(asteroids[0].distanceToLeft)),
-        ftxui::text("DtoR: " + std::to_string(asteroids[0].distanceToRight)) }) });
+        ftxui::text("FPS: " + std::to_string(fps)) }) });
   }
 };
 
@@ -205,17 +222,17 @@ public:
 
 void brick()
 {
-  GameState state{};
+  Universe universe{};
 
   auto screen = ftxui::ScreenInteractive::TerminalOutput();
 
   auto renderer = ftxui::Renderer([&]() {
-    state.update();
-    return state.draw();
+    universe.update();
+    return universe.draw();
   });
 
   auto events_catcher = ftxui::CatchEvent(renderer, [&](ftxui::Event e) {
-    state.onEvent(e);
+    universe.onEvent(e);
     return false;
   });
 
