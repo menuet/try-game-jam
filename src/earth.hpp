@@ -27,10 +27,10 @@ public:
 
   void draw(ftxui::Canvas &canvas) const
   {
-    canvas.DrawBlockCircleFilled((int)EarthCenter.x, (int)EarthCenter.y, EarthRadius);
-    canvas.DrawPointCircle((int)EarthCenter.x, (int)EarthCenter.y, ShieldRadius);
+    canvas.DrawBlockCircleFilled(static_cast<int>(EarthCenter.x), static_cast<int>(EarthCenter.y), EarthRadius);
+    canvas.DrawPointCircle(static_cast<int>(EarthCenter.x), static_cast<int>(EarthCenter.y), ShieldRadius);
     if (is_destroyed)
-      canvas.DrawText((int)EarthCenter.x - 20, (int)EarthCenter.y, "BOOOOOOOOOOOOOOOOOOOOOOM", ftxui::Color::Red);
+      canvas.DrawText(static_cast<int>(EarthCenter.x) - 20, static_cast<int>(EarthCenter.y), "BOOOOOOOOOOOOOOOOOOOOOOM", ftxui::Color::Red);
   }
 };
 

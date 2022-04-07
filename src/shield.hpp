@@ -1,8 +1,8 @@
 
 #pragma once
 
-#include "utilities.hpp"
 #include "configuration.hpp"
+#include "utilities.hpp"
 #include <ftxui/component/captured_mouse.hpp>// for ftxui
 #include <ftxui/component/component.hpp>// for Slider
 #include <ftxui/component/screen_interactive.hpp>// for ScreenInteractive
@@ -24,7 +24,11 @@ public:
     right = translate(rotate(ShieldRight, angle), CenterOffset);
   }
 
-  void draw(ftxui::Canvas &canvas) const { canvas.DrawBlockLine((int)left.x, (int)left.y, (int)right.x, (int)right.y); }
+  void draw(ftxui::Canvas &canvas) const
+  {
+    canvas.DrawBlockLine(
+      static_cast<int>(left.x), static_cast<int>(left.y), static_cast<int>(right.x), static_cast<int>(right.y));
+  }
 
   bool isNear(const Point &point, double &distanceToShield, double &distanceToLeft, double &distanceToRight) const
   {
@@ -48,4 +52,4 @@ public:
   }
 };
 
-}
+}// namespace atw

@@ -1,8 +1,8 @@
 
 #pragma once
 
-#include "utilities.hpp"
 #include "configuration.hpp"
+#include "utilities.hpp"
 #include <ftxui/component/captured_mouse.hpp>// for ftxui
 #include <ftxui/component/component.hpp>// for Slider
 #include <ftxui/component/screen_interactive.hpp>// for ScreenInteractive
@@ -40,7 +40,10 @@ public:
     }
   }
 
-  void draw(ftxui::Canvas &canvas) const { canvas.DrawBlockCircle((int)position.x, (int)position.y, AsteroidRadius); }
+  void draw(ftxui::Canvas &canvas) const
+  {
+    canvas.DrawBlockCircle(static_cast<int>(position.x), static_cast<int>(position.y), AsteroidRadius);
+  }
 };
 
-}
+}// namespace atw
