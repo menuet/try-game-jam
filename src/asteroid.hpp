@@ -2,10 +2,8 @@
 #pragma once
 
 #include "configuration.hpp"
+#include "shield.hpp"
 #include "utilities.hpp"
-#include <ftxui/component/captured_mouse.hpp>// for ftxui
-#include <ftxui/component/component.hpp>// for Slider
-#include <ftxui/component/screen_interactive.hpp>// for ScreenInteractive
 
 namespace atw {
 
@@ -13,13 +11,12 @@ struct Asteroid
 {
   Point position{};
   Offset velocity{};
-  double distanceToShield{};
-  double distanceToLeft{};
-  double distanceToRight{};
+  bool red{};
 
 public:
   void update(const Shield &shield)
   {
+    red = !red;
     position.x += velocity.dx;
     position.y += velocity.dy;
 
@@ -32,7 +29,7 @@ public:
       position.y += velocity.dy;
     }
 
-    if (shield.isNear(position, distanceToShield, distanceToLeft, distanceToRight)) {
+    if (shield.isNear(position)) {
       velocity.dx = -velocity.dx;
       velocity.dy = -velocity.dy;
       position.x += velocity.dx;
@@ -42,7 +39,10 @@ public:
 
   void draw(ftxui::Canvas &canvas) const
   {
-    canvas.DrawBlockCircle(static_cast<int>(position.x), static_cast<int>(position.y), AsteroidRadius);
+    canvas.DrawBlockCircle(static_cast<int>(position.x),
+      static_cast<int>(position.y),
+      AsteroidRadius,
+      red ? ftxui::Color::Red : ftxui::Color::Yellow);
   }
 };
 

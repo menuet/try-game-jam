@@ -1,14 +1,11 @@
 
 #pragma once
 
-#include "utilities.hpp"
-#include "configuration.hpp"
 #include "asteroid.hpp"
-#include <ftxui/component/captured_mouse.hpp>// for ftxui
-#include <ftxui/component/component.hpp>// for Slider
-#include <ftxui/component/screen_interactive.hpp>// for ScreenInteractive
-#include <vector>
+#include "configuration.hpp"
+#include "utilities.hpp"
 #include <algorithm>
+#include <vector>
 
 namespace atw {
 
@@ -27,11 +24,17 @@ public:
 
   void draw(ftxui::Canvas &canvas) const
   {
-    canvas.DrawBlockCircleFilled(static_cast<int>(EarthCenter.x), static_cast<int>(EarthCenter.y), EarthRadius);
+    canvas.DrawBlockCircleFilled(static_cast<int>(EarthCenter.x),
+      static_cast<int>(EarthCenter.y),
+      EarthRadius,
+      is_destroyed ? ftxui::Color::Red : ftxui::Color::Blue);
     canvas.DrawPointCircle(static_cast<int>(EarthCenter.x), static_cast<int>(EarthCenter.y), ShieldRadius);
     if (is_destroyed)
-      canvas.DrawText(static_cast<int>(EarthCenter.x) - 20, static_cast<int>(EarthCenter.y), "BOOOOOOOOOOOOOOOOOOOOOOM", ftxui::Color::Red);
+      canvas.DrawText(static_cast<int>(EarthCenter.x) - 20,
+        static_cast<int>(EarthCenter.y),
+        "BOOOOOOOOOOOOOOOOOOOOOOM",
+        ftxui::Color::Red);
   }
 };
 
-}
+}// namespace atw

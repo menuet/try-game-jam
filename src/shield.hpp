@@ -13,40 +13,35 @@ namespace atw {
 class Shield
 {
   double angle{};
-  Point left{ translate(ShieldLeft, CenterOffset) };
-  Point right{ translate(ShieldRight, CenterOffset) };
+  Segment segment{ translate(ShieldLeft, CenterOffset), translate(ShieldRight, CenterOffset) };
 
 public:
   void update(Point mouse)
   {
     angle = std::atan2(mouse.y - CenterOffset.dy, mouse.x - CenterOffset.dx) + std::numbers::pi / 2;
-    left = translate(rotate(ShieldLeft, angle), CenterOffset);
-    right = translate(rotate(ShieldRight, angle), CenterOffset);
+    segment = Segment{ translate(rotate(ShieldLeft, angle), CenterOffset),
+      translate(rotate(ShieldRight, angle), CenterOffset) };
   }
 
   void draw(ftxui::Canvas &canvas) const
   {
-    canvas.DrawBlockLine(
-      static_cast<int>(left.x), static_cast<int>(left.y), static_cast<int>(right.x), static_cast<int>(right.y));
+    canvas.DrawBlockLine(static_cast<int>(segment.p1.x),
+      static_cast<int>(segment.p1.y),
+      static_cast<int>(segment.p2.x),
+      static_cast<int>(segment.p2.y),
+      ftxui::Color::DarkOrange);
   }
 
-  bool isNear(const Point &point, double &distanceToShield, double &distanceToLeft, double &distanceToRight) const
+  bool isNear(const Point &point) const
   {
-    if (right.x != left.x) {
-      const auto m = (right.y - left.y) / (right.x - left.x);
-      const auto num = std::abs(-m * point.x + 1 * point.y - left.y + m * left.x);
-      const auto den = std::sqrt(-m * -m + 1 * 1);
-      distanceToShield = num / den;
-    } else
-      distanceToShield = std::abs(point.x - left.x);
-
-    distanceToLeft = distance(point, left);
-
-    distanceToRight = distance(point, right);
-
+    const auto distanceToShield = distance(point, segment);
     if (distanceToShield > AsteroidRadius) return false;
-    if (distanceToLeft > ShieldSpan * 2) return false;
-    if (distanceToRight > ShieldSpan * 2) return false;
+
+    const auto distanceToP1 = distance(point, segment.p1);
+    if (distanceToP1 > ShieldSpan * 2) return false;
+
+    const auto distanceToP2 = distance(point, segment.p2);
+    if (distanceToP2 > ShieldSpan * 2) return false;
 
     return true;
   }

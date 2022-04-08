@@ -1,18 +1,18 @@
 
 #pragma once
 
-#include "utilities.hpp"
-#include "configuration.hpp"
 #include "asteroid.hpp"
-#include "shield.hpp"
+#include "configuration.hpp"
 #include "earth.hpp"
+#include "shield.hpp"
+#include "utilities.hpp"
 
 namespace atw {
 
 class Universe
 {
-  double fps = 0;
-  int counter = 0;
+  double fps{};
+  int counter{};
   std::chrono::steady_clock::time_point last_time = std::chrono::steady_clock::now();
   std::chrono::steady_clock::time_point last_asteroid_time = last_time;
   Point mouse{};
@@ -64,9 +64,8 @@ public:
 
     return ftxui::hbox({ universeComponent->Render() | ftxui::borderDouble,
       ftxui::separator(),
-      ftxui::vbox({ ftxui::text("Frame: " + std::to_string(counter)),
-        ftxui::text("FPS: " + std::to_string(fps)) }) });
+      ftxui::vbox({ ftxui::text("Frame: " + std::to_string(counter)), ftxui::text("FPS: " + std::to_string(fps)) }) });
   }
 };
 
-}
+}// namespace atw

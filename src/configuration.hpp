@@ -21,6 +21,6 @@ static constexpr Point ShieldLeft{ -ShieldSpan, -ShieldRadius };
 static constexpr Point ShieldRight{ +ShieldSpan, -ShieldRadius };
 static constexpr Offset CenterOffset{ EarthCenter.x, EarthCenter.y };
 static constexpr int AsteroidRadius = 2;
-static constexpr auto FrameInterval = 50ms;
+static constexpr auto FrameInterval = 25ms;
 
-}
+}// namespace atw

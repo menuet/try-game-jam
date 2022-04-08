@@ -1,18 +1,27 @@
 ﻿
-#include "utilities.hpp"
-#include "configuration.hpp"
-#include "shield.hpp"
 #include "asteroid.hpp"
+#include "configuration.hpp"
 #include "earth.hpp"
+#include "shield.hpp"
 #include "universe.hpp"
+#include "utilities.hpp"
 
 namespace atw {
 
 void play()
 {
-  Universe universe{};
+  std::atomic<bool> refresh_ui_continue = true;
 
   auto screen = ftxui::ScreenInteractive::TerminalOutput();
+
+  std::thread refresh_ui([&] {
+    while (refresh_ui_continue) {
+      std::this_thread::sleep_for(FrameInterval);
+      screen.PostEvent(ftxui::Event::Custom);
+    }
+  });
+
+  Universe universe{};
 
   auto renderer = ftxui::Renderer([&]() {
     universe.update();
@@ -24,19 +33,10 @@ void play()
     return false;
   });
 
-  std::atomic<bool> refresh_ui_continue = true;
-
-  std::thread refresh_ui([&] {
-    while (refresh_ui_continue) {
-      std::this_thread::sleep_for(FrameInterval);
-      screen.PostEvent(ftxui::Event::Custom);
-    }
-  });
-
   screen.Loop(events_catcher);
 
   refresh_ui_continue = false;
   refresh_ui.join();
 }
 
-}
+}// namespace atw
