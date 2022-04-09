@@ -2,6 +2,7 @@
 #include "asteroid.hpp"
 #include "configuration.hpp"
 #include "earth.hpp"
+#include "refresher.hpp"
 #include "shield.hpp"
 #include "universe.hpp"
 #include "utilities.hpp"
@@ -11,18 +12,11 @@ namespace atw {
 
 void play()
 {
-  std::atomic<bool> refresh_ui_continue = true;
-
   auto screen = ftxui::ScreenInteractive::TerminalOutput();
 
-  std::thread refresh_ui([&] {
-    while (refresh_ui_continue) {
-      std::this_thread::sleep_for(FrameInterval);
-      screen.PostEvent(ftxui::Event::Custom);
-    }
-  });
+  Refresher refresher{ screen, FrameInterval };
 
-  Universe universe{ std::chrono::steady_clock::now(), atw::randomAsteroid };
+  Universe universe{ std::chrono::steady_clock::now(), randomAsteroid };
   Point mouse{};
 
   auto renderer = ftxui::Renderer([&]() {
@@ -39,9 +33,6 @@ void play()
   });
 
   screen.Loop(events_catcher);
-
-  refresh_ui_continue = false;
-  refresh_ui.join();
 }
 
 }// namespace atw

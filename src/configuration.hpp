@@ -25,6 +25,6 @@ static constexpr int AsteroidRadius = 2;
 static constexpr auto AsteroidCreationInterval = 5s;
 static constexpr double AsteroidMinSpeed = 1.0;
 static constexpr double AsteroidMaxSpeed = 3.0;
-static constexpr auto FrameInterval = 25ms;
+static constexpr auto FrameInterval = 50ms;
 
 }// namespace atw
