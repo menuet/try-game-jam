@@ -2,6 +2,7 @@
 #pragma once
 
 #include <cmath>
+#include <random>
 
 namespace atw {
 
@@ -49,6 +50,25 @@ inline auto distance(Point p, Segment s) noexcept
     return num / den;
   }
   return std::abs(p.x - s.p1.x);
+}
+
+inline auto &randomGenerator()
+{
+  static std::random_device rd{};
+  static std::mt19937 gen{ rd() };
+  return gen;
+}
+
+inline int randomNumber(int min, int max)
+{
+  std::uniform_int_distribution<> distrib(min, max);
+  return distrib(randomGenerator());
+}
+
+inline double randomNumber(double min, double max)
+{
+  std::uniform_real_distribution<> distrib(min, max);
+  return distrib(randomGenerator());
 }
 
 }// namespace atw
