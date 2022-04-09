@@ -33,7 +33,7 @@ class Asteroid
   bool red{};
 
 public:
-  Asteroid(Point position, Offset velocity) : position{ position }, velocity{ velocity } {}
+  Asteroid(Point p, Offset v) : position{ p }, velocity{ v } {}
 
   bool isNearEarth() const { return distance(position, EarthCenter) <= EarthRadius + AsteroidRadius; }
 

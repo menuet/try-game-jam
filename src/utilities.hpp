@@ -24,14 +24,14 @@ struct Offset
   double dy{};
 };
 
+constexpr inline Point transpose(Point p, Offset offset) noexcept { return { p.x + offset.dx, p.y + offset.dy }; }
+
 inline Point rotate(Point p, double angle) noexcept
 {
   const auto co = std::cos(angle);
   const auto si = std::sin(angle);
   return { p.x * co - p.y * si, p.x * si + p.y * co };
 }
-
-constexpr inline Point translate(Point p, Offset offset) noexcept { return { p.x + offset.dx, p.y + offset.dy }; }
 
 inline auto distance(Point p1, Point p2) noexcept
 {

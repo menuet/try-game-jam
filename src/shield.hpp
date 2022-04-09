@@ -13,14 +13,14 @@ namespace atw {
 class Shield
 {
   double angle{};
-  Segment segment{ translate(ShieldLeft, CenterOffset), translate(ShieldRight, CenterOffset) };
+  Segment segment{ transpose(ShieldLeft, CenterOffset), transpose(ShieldRight, CenterOffset) };
 
 public:
   void update(Point mouse)
   {
     angle = std::atan2(mouse.y - CenterOffset.dy, mouse.x - CenterOffset.dx) + std::numbers::pi / 2;
-    segment = Segment{ translate(rotate(ShieldLeft, angle), CenterOffset),
-      translate(rotate(ShieldRight, angle), CenterOffset) };
+    segment = Segment{ transpose(rotate(ShieldLeft, angle), CenterOffset),
+      transpose(rotate(ShieldRight, angle), CenterOffset) };
   }
 
   void draw(ftxui::Canvas &canvas) const
