@@ -16,6 +16,7 @@ class Earth
 public:
   bool update(const std::vector<Asteroid> &asteroids)
   {
+    if (is_destroyed) return false;
     is_destroyed =
       std::any_of(std::begin(asteroids), std::end(asteroids), [](const auto &a) { return a.isNearEarth(); });
     return !is_destroyed;

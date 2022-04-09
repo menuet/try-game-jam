@@ -106,7 +106,7 @@ TEST_CASE("universe update before asteroid creation interval", "[universe]")
   atw::Universe universe{ time, generateAsteroid };
 
   // ACT
-  universe.update(time + atw::AsteroidCreationInterval / 2, atw::Point{ 1, 1 });
+  universe.update(time + atw::AsteroidCreationInterval / 2, {});
 
   // ASSERT
   REQUIRE(universe.getPoints() == 0);
@@ -125,14 +125,14 @@ TEST_CASE("universe update after asteroid creation interval", "[universe]")
   atw::Universe universe{ time, generateAsteroid };
 
   // ACT
-  universe.update(time + 3 * atw::AsteroidCreationInterval / 2, atw::Point{ 1, 1 });
+  universe.update(time + 3 * atw::AsteroidCreationInterval / 2, {});
 
   // ASSERT
   REQUIRE(universe.getPoints() == 0);
   REQUIRE(universe.getAsteroids().size() == atw::InitialAsteroidsCount + 1);
 }
 
-TEST_CASE("shield update", "[shield]")
+TEST_CASE("shield onEvent", "[shield]")
 {
   // ARRANGE
   static constexpr auto mouse = atw::transpose(atw::EarthCenter, { 0.0, -50.0 });

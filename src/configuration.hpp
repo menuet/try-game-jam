@@ -8,7 +8,6 @@ namespace atw {
 
 using namespace std::chrono_literals;
 
-static constexpr double MicrosSecondsPerSecond = 1'000'000.0;
 static constexpr int UniverseWidth = 300;
 static constexpr int UniverseHeight = 150;
 static constexpr Point EarthCenter{ UniverseWidth / 2, UniverseHeight / 2 };
