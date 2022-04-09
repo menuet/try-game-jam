@@ -131,3 +131,92 @@ TEST_CASE("universe update after asteroid creation interval", "[universe]")
   REQUIRE(universe.getPoints() == 0);
   REQUIRE(universe.getAsteroids().size() == atw::InitialAsteroidsCount + 1);
 }
+
+TEST_CASE("shield update", "[shield]")
+{
+  // ARRANGE
+  static constexpr auto mouse = atw::transpose(atw::EarthCenter, { 0.0, -50.0 });
+  atw::Shield shield{};
+
+  // ACT
+  shield.update(mouse);
+
+  // ASSERT
+  const auto expectedAngle = 0.0;
+  REQUIRE(shield.getAngle() == Approx(expectedAngle));
+  const auto expectedSegment =
+    atw::Segment{ { atw::EarthCenter.x - atw::ShieldSpan, atw::EarthCenter.y - atw::ShieldRadius },
+      {
+        atw::EarthCenter.x + atw::ShieldSpan,
+        atw::EarthCenter.y - atw::ShieldRadius,
+      } };
+  REQUIRE(shield.getSegment().p1.x == Approx(expectedSegment.p1.x));
+  REQUIRE(shield.getSegment().p1.y == Approx(expectedSegment.p1.y));
+  REQUIRE(shield.getSegment().p2.x == Approx(expectedSegment.p2.x));
+  REQUIRE(shield.getSegment().p2.y == Approx(expectedSegment.p2.y));
+}
+
+TEST_CASE("asteroid is near Earth", "[asteroid]")
+{
+  // ARRANGE
+  static constexpr auto p = atw::transpose(atw::EarthCenter, { 0.0, atw::EarthRadius });
+  static constexpr auto v = atw::Offset{ 2.0, 3.0 };
+  atw::Asteroid asteroid{ p, v };
+
+  // ACT
+  const auto result = asteroid.isNearEarth();
+
+  // ASSERT
+  REQUIRE(result);
+}
+
+TEST_CASE("asteroid is not near Earth", "[asteroid]")
+{
+  // ARRANGE
+  static constexpr auto p = atw::transpose(atw::EarthCenter, { 0.0, atw::EarthRadius + atw::AsteroidRadius + 1.0 });
+  static constexpr auto v = atw::Offset{ 2.0, 3.0 };
+  atw::Asteroid asteroid{ p, v };
+
+  // ACT
+  const auto result = asteroid.isNearEarth();
+
+  // ASSERT
+  REQUIRE_FALSE(result);
+}
+
+TEST_CASE("earth update and survive", "[earth]")
+{
+  // ARRANGE
+  const std::vector<atw::Asteroid> asteroids{
+    atw::Asteroid{ { 0., 0. }, {} },
+    atw::Asteroid{ { 0., atw::UniverseHeight }, {} },
+    atw::Asteroid{ { atw::UniverseWidth, 0 }, {} },
+    atw::Asteroid{ { atw::UniverseWidth, atw::UniverseHeight }, {} },
+  };
+  atw::Earth earth{};
+
+  // ACT
+  const auto result = earth.update(asteroids);
+
+  // ASSERT
+  REQUIRE(result);
+}
+
+TEST_CASE("earth update and die", "[earth]")
+{
+  // ARRANGE
+  const std::vector<atw::Asteroid> asteroids{
+    atw::Asteroid{ { 0., 0. }, {} },
+    atw::Asteroid{ { 0., atw::UniverseHeight }, {} },
+    atw::Asteroid{ { atw::UniverseWidth, 0 }, {} },
+    atw::Asteroid{ { atw::UniverseWidth, atw::UniverseHeight }, {} },
+    atw::Asteroid{ { atw::EarthCenter.x + atw::EarthRadius / 2, atw::EarthCenter.y - atw::EarthRadius / 2 }, {} },
+  };
+  atw::Earth earth{};
+
+  // ACT
+  const auto result = earth.update(asteroids);
+
+  // ASSERT
+  REQUIRE_FALSE(result);
+}

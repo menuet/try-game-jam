@@ -45,6 +45,10 @@ public:
 
     return true;
   }
+
+  // For unit tests only
+  double getAngle() const { return angle; }
+  const Segment &getSegment() const { return segment; }
 };
 
 }// namespace atw
