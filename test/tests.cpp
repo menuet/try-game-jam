@@ -208,9 +208,9 @@ TEST_CASE("earth update and die", "[earth]")
   const std::vector<atw::Asteroid> asteroids{
     atw::Asteroid{ { 0., 0. }, {} },
     atw::Asteroid{ { 0., atw::UniverseHeight }, {} },
-    atw::Asteroid{ { atw::UniverseWidth, 0 }, {} },
+    atw::Asteroid{ { atw::UniverseWidth, 0. }, {} },
     atw::Asteroid{ { atw::UniverseWidth, atw::UniverseHeight }, {} },
-    atw::Asteroid{ { atw::EarthCenter.x + atw::EarthRadius / 2, atw::EarthCenter.y - atw::EarthRadius / 2 }, {} },
+    atw::Asteroid{ { atw::EarthCenter.x + atw::EarthRadius / 2.0, atw::EarthCenter.y - atw::EarthRadius / 2.0 }, {} },
   };
   atw::Earth earth{};
 
