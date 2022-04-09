@@ -7,6 +7,7 @@
 #include "shield.hpp"
 #include "utilities.hpp"
 #include <algorithm>
+#include <functional>
 
 namespace atw {
 
@@ -21,13 +22,16 @@ class Universe
   Earth earth{};
   Shield shield{};
   std::vector<Asteroid> asteroids{};
+  std::function<Asteroid()> createAsteroid{};
 
 public:
-  Universe(std::chrono::steady_clock::time_point now)
-    : last_update_time{ now }, last_asteroids_update_time{ now }, last_asteroids_creation_time{ now }
+  explicit Universe(std::chrono::steady_clock::time_point now, std::function<Asteroid()> asteroidCreator)
+    : last_update_time{ now }, last_asteroids_update_time{ now }, last_asteroids_creation_time{ now }, createAsteroid{
+        std::move(asteroidCreator)
+      }
   {
     asteroids.resize(InitialAsteroidsCount);
-    std::generate(begin(asteroids), end(asteroids), randomAsteroid);
+    std::generate(begin(asteroids), end(asteroids), createAsteroid);
   }
 
   void update(std::chrono::steady_clock::time_point now, const Point &mouse)
@@ -53,7 +57,7 @@ public:
     if (new_time - last_asteroids_creation_time < AsteroidCreationInterval) return;
     last_asteroids_creation_time = new_time;
 
-    asteroids.push_back(randomAsteroid());
+    asteroids.push_back(createAsteroid());
   }
 
   auto draw() const
@@ -73,6 +77,11 @@ public:
         ftxui::text("Asteroids: " + std::to_string(asteroids.size())),
         ftxui::text("Points: " + std::to_string(points)) }) });
   }
+
+  // For unit tests only
+  std::size_t getPoints() const { return points; }
+  const Shield &getShield() const { return shield; }
+  const std::vector<Asteroid> getAsteroids() const { return asteroids; }
 };
 
 }// namespace atw

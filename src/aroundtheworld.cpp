@@ -22,7 +22,7 @@ void play()
     }
   });
 
-  Universe universe{ std::chrono::steady_clock::now() };
+  Universe universe{ std::chrono::steady_clock::now(), atw::randomAsteroid };
   Point mouse{};
 
   auto renderer = ftxui::Renderer([&]() {
