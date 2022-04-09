@@ -1,7 +1,7 @@
 
 #pragma once
 
-#include "asteroid.hpp"
+#include "satellite.hpp"
 #include "configuration.hpp"
 #include "utilities.hpp"
 #include <algorithm>
@@ -14,11 +14,11 @@ class Earth
   bool is_destroyed{};
 
 public:
-  bool update(const std::vector<Asteroid> &asteroids)
+  bool update(const std::vector<Satellite> &satellites)
   {
     if (is_destroyed) return false;
     is_destroyed =
-      std::any_of(std::begin(asteroids), std::end(asteroids), [](const auto &a) { return a.isNearEarth(); });
+      std::any_of(std::begin(satellites), std::end(satellites), [](const auto &a) { return a.isNearEarth(); });
     return !is_destroyed;
   }
 

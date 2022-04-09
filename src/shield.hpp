@@ -18,10 +18,21 @@ class Shield
 public:
   void update(const Point &mouse)
   {
-    angle = std::atan2(mouse.y - CenterOffset.dy, mouse.x - CenterOffset.dx) + std::numbers::pi / 2;
-    segment = Segment{ transpose(rotate(ShieldLeft, angle), CenterOffset),
-      transpose(rotate(ShieldRight, angle), CenterOffset) };
+    update(std::atan2(mouse.y - CenterOffset.dy, mouse.x - CenterOffset.dx) + std::numbers::pi / 2);
   }
+
+  void update(double a)
+  {
+    angle = a;
+    segment = Segment{
+      transpose(rotate(ShieldLeft, a), CenterOffset),
+      transpose(rotate(ShieldRight, a), CenterOffset),
+    };
+  }
+
+  void rotateLeft() { update(angle - ShieldAngleStep); }
+
+  void rotateRight() { update(angle + ShieldAngleStep); }
 
   void draw(ftxui::Canvas &canvas) const
   {
@@ -30,12 +41,16 @@ public:
       static_cast<int>(segment.p2.x),
       static_cast<int>(segment.p2.y),
       ftxui::Color::DarkOrange);
+    canvas.DrawBlockCircleFilled(
+      static_cast<int>(segment.p1.x), static_cast<int>(segment.p1.y), 2, ftxui::Color::DarkOrange);
+    canvas.DrawBlockCircleFilled(
+      static_cast<int>(segment.p2.x), static_cast<int>(segment.p2.y), 2, ftxui::Color::DarkOrange);
   }
 
   bool isNear(const Point &point) const
   {
     const auto distanceToShield = distance(point, segment);
-    if (distanceToShield > AsteroidRadius) return false;
+    if (distanceToShield > SatelliteRadius) return false;
 
     const auto distanceToP1 = distance(point, segment.p1);
     if (distanceToP1 > ShieldSpan * 2) return false;

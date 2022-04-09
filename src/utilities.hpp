@@ -1,8 +1,10 @@
 
 #pragma once
 
+#include <algorithm>
 #include <cmath>
 #include <random>
+#include <string>
 
 namespace atw {
 
@@ -69,6 +71,24 @@ inline double randomNumber(double min, double max)
 {
   std::uniform_real_distribution<> distrib(min, max);
   return distrib(randomGenerator());
+}
+
+inline std::string stretchText(std::size_t desiredLength, const std::string &text)
+{
+  std::string stretchedText{};
+  if (text.length() < desiredLength) {
+    const auto desiredGrowth = desiredLength - text.length();
+    const auto existingSpacesCount = std::count(begin(text), end(text), ' ');
+    const auto insertedSpacesCountPerExistingSpace = desiredGrowth / existingSpacesCount;
+    for (const auto c : text) {
+      stretchedText += c;
+      if (c == ' ') {
+        for (std::size_t i = 0; i < insertedSpacesCountPerExistingSpace; ++i) stretchedText += c;
+      }
+    }
+    return stretchedText;
+  }
+  return text;
 }
 
 }// namespace atw

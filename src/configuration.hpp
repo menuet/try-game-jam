@@ -3,6 +3,7 @@
 
 #include "utilities.hpp"
 #include <chrono>
+#include <numbers>
 
 namespace atw {
 
@@ -18,12 +19,16 @@ static constexpr int MouseRatioX = 2;
 static constexpr int MouseRatioY = 4;
 static constexpr Point ShieldLeft{ -ShieldSpan, -ShieldRadius };
 static constexpr Point ShieldRight{ +ShieldSpan, -ShieldRadius };
+static constexpr double ShieldAngleStep = std::numbers::pi / 16.0;
 static constexpr Offset CenterOffset{ EarthCenter.x, EarthCenter.y };
-static constexpr std::size_t InitialAsteroidsCount = 3;
-static constexpr int AsteroidRadius = 2;
-static constexpr auto AsteroidCreationInterval = 5s;
-static constexpr double AsteroidMinSpeed = 1.0;
-static constexpr double AsteroidMaxSpeed = 3.0;
+static constexpr std::size_t InitialSatellitesCount = 3;
+static constexpr int SatelliteRadius = 2;
+static constexpr auto SatelliteCreationInterval = 5s;
+static constexpr double SatelliteMinSpeed = 1.0;
+static constexpr double SatelliteMaxSpeed = 2.5;
 static constexpr auto FrameInterval = 50ms;
+static constexpr auto IntroTextScrollInterval = 1s;
+static constexpr int CharWidth = 2;
+static constexpr int CharHeight = 4;
 
 }// namespace atw

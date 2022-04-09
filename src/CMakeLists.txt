@@ -11,7 +11,7 @@ add_executable(
   utilities.hpp
   configuration.hpp
   shield.hpp
-  asteroid.hpp
+  satellite.hpp
   earth.hpp
   universe.hpp
   refresher.hpp)

@@ -22,22 +22,22 @@ inline Offset randomVelocity(double x) noexcept
 {
   const auto angle = x == 0.0 ? randomNumber(-std::numbers::pi / 4, std::numbers::pi / 4)
                               : randomNumber(-3 * std::numbers::pi / 4, 3 * std::numbers::pi / 4);
-  const auto speed = randomNumber(AsteroidMinSpeed, AsteroidMaxSpeed);
+  const auto speed = randomNumber(SatelliteMinSpeed, SatelliteMaxSpeed);
   return { speed * std::cos(angle), speed * std::sin(angle) };
 }
 
-class Asteroid
+class Satellite
 {
   Point position{};
   Offset velocity{};
   bool red{};
 
 public:
-  Asteroid() = default;
+  Satellite() = default;
 
-  Asteroid(Point p, Offset v) : position{ p }, velocity{ v } {}
+  Satellite(Point p, Offset v) : position{ p }, velocity{ v } {}
 
-  bool isNearEarth() const { return distance(position, EarthCenter) <= EarthRadius + AsteroidRadius; }
+  bool isNearEarth() const { return distance(position, EarthCenter) <= EarthRadius + SatelliteRadius; }
 
   bool update(const Shield &shield)
   {
@@ -69,15 +69,15 @@ public:
   {
     canvas.DrawBlockCircle(static_cast<int>(position.x),
       static_cast<int>(position.y),
-      AsteroidRadius,
+      SatelliteRadius,
       red ? ftxui::Color::Red : ftxui::Color::Yellow);
   }
 };
 
-inline Asteroid randomAsteroid()
+inline Satellite randomSatellite()
 {
   auto pos = randomPosition();
-  return Asteroid(pos, randomVelocity(pos.x));
+  return Satellite(pos, randomVelocity(pos.x));
 }
 
 

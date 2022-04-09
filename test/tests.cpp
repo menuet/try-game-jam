@@ -79,57 +79,130 @@ TEST_CASE("distance point/line", "[utilities]")
 TEST_CASE("universe constructor", "[universe]")
 {
   // ARRANGE
-  static constexpr auto time = std::chrono::steady_clock::time_point{ 1ms };
+  static constexpr auto time = std::chrono::steady_clock::time_point{ 0ms };
   double index = 0.0;
-  const auto generateAsteroid = [&] {
+  const auto generateSatellite = [&] {
     ++index;
-    return atw::Asteroid{ { index, index }, { index, index } };
+    return atw::Satellite{ { index, index }, { index, index } };
   };
 
   // ACT
-  const atw::Universe universe{ time, generateAsteroid };
+  const atw::Universe universe{ time, generateSatellite };
 
   // ASSERT
   REQUIRE(universe.getPoints() == 0);
-  REQUIRE(universe.getAsteroids().size() == atw::InitialAsteroidsCount);
+  REQUIRE(universe.getSatellites().size() == atw::InitialSatellitesCount);
+  REQUIRE(universe.getState() == atw::State::Intro);
 }
 
-TEST_CASE("universe update before asteroid creation interval", "[universe]")
+TEST_CASE("universe update", "[universe]")
 {
   // ARRANGE
   static constexpr auto time = std::chrono::steady_clock::time_point{ 0ms };
   double index = 0.0;
-  const auto generateAsteroid = [&] {
+  const auto generateSatellite = [&] {
     ++index;
-    return atw::Asteroid{ { index, index }, { index, index } };
+    return atw::Satellite{ { index, index }, { index, index } };
   };
-  atw::Universe universe{ time, generateAsteroid };
+  atw::Universe universe{ time, generateSatellite };
 
-  // ACT
-  universe.update(time + atw::AsteroidCreationInterval / 2, {});
+  SECTION("update Intro with Frame event after a too small delay")
+  {
+    // ARRANGE
+    const auto previousOffset = universe.getIntroTextOffset();
 
-  // ASSERT
-  REQUIRE(universe.getPoints() == 0);
-  REQUIRE(universe.getAsteroids().size() == atw::InitialAsteroidsCount);
-}
+    // ACT
+    universe.update(time + atw::IntroTextScrollInterval - 1ms, { atw::EventType::Frame });
 
-TEST_CASE("universe update after asteroid creation interval", "[universe]")
-{
-  // ARRANGE
-  static constexpr auto time = std::chrono::steady_clock::time_point{ 0ms };
-  double index = 0.0;
-  const auto generateAsteroid = [&] {
-    ++index;
-    return atw::Asteroid{ { index, index }, { index, index } };
-  };
-  atw::Universe universe{ time, generateAsteroid };
+    // ASSERT
+    REQUIRE(universe.getState() == atw::State::Intro);
+    REQUIRE(universe.getIntroTextOffset() == previousOffset);
+  }
 
-  // ACT
-  universe.update(time + 3 * atw::AsteroidCreationInterval / 2, {});
+  SECTION("update Intro with Frame event after enough delay")
+  {
+    // ARRANGE
+    const auto previousOffset = universe.getIntroTextOffset();
 
-  // ASSERT
-  REQUIRE(universe.getPoints() == 0);
-  REQUIRE(universe.getAsteroids().size() == atw::InitialAsteroidsCount + 1);
+    // ACT
+    universe.update(time + atw::IntroTextScrollInterval, { atw::EventType::Frame });
+
+    // ASSERT
+    REQUIRE(universe.getState() == atw::State::Intro);
+    REQUIRE(universe.getIntroTextOffset() == previousOffset - atw::CharHeight);
+  }
+
+  SECTION("update Intro with Frame events after full scroll")
+  {
+    // ACT
+    for (int i = 0; i < 5000; ++i) universe.update(time + i * atw::IntroTextScrollInterval, { atw::EventType::Frame });
+
+    // ASSERT
+    REQUIRE(universe.getState() == atw::State::Intro);
+    REQUIRE(universe.getIntroTextOffset() == 0);
+  }
+
+  SECTION("update Intro with Start event")
+  {
+    // ARRANGE
+    const auto previousOffset = universe.getIntroTextOffset();
+
+    // ACT
+    universe.update(time + atw::IntroTextScrollInterval - 1ms, { atw::EventType::Start });
+
+    // ASSERT
+    REQUIRE(universe.getState() == atw::State::Play);
+    REQUIRE(universe.getIntroTextOffset() == previousOffset);
+
+    SECTION("update Game with Mouse event")
+    {
+      // ACT
+      universe.update(time + atw::IntroTextScrollInterval,
+        { atw::EventType::Mouse, { .x = atw::EarthCenter.x + 50, .y = atw::EarthCenter.y } });
+
+      // ASSERT
+      REQUIRE(universe.getState() == atw::State::Play);
+      REQUIRE(universe.getShield().getAngle() == Approx(std::numbers::pi / 2.0));
+      REQUIRE(universe.getPoints() == 0);
+      REQUIRE(universe.getSatellites().size() == atw::InitialSatellitesCount);
+    }
+
+    SECTION("update Game with Left event")
+    {
+      // ACT
+      universe.update(time + atw::IntroTextScrollInterval, { atw::EventType::Left });
+
+      // ASSERT
+      REQUIRE(universe.getState() == atw::State::Play);
+      REQUIRE(universe.getShield().getAngle() == Approx(0. - atw::ShieldAngleStep));
+      REQUIRE(universe.getPoints() == 0);
+      REQUIRE(universe.getSatellites().size() == atw::InitialSatellitesCount);
+    }
+
+    SECTION("update Game with Right event")
+    {
+      // ACT
+      universe.update(time + atw::IntroTextScrollInterval, { atw::EventType::Right });
+
+      // ASSERT
+      REQUIRE(universe.getState() == atw::State::Play);
+      REQUIRE(universe.getShield().getAngle() == Approx(0. + atw::ShieldAngleStep));
+      REQUIRE(universe.getPoints() == 0);
+      REQUIRE(universe.getSatellites().size() == atw::InitialSatellitesCount);
+    }
+
+    SECTION("update Game with Frame event")
+    {
+      // ACT
+      universe.update(time + atw::IntroTextScrollInterval, { atw::EventType::Frame });
+
+      // ASSERT
+      REQUIRE(universe.getState() == atw::State::Play);
+      REQUIRE(universe.getShield().getAngle() == Approx(0.));
+      REQUIRE(universe.getPoints() == 0);
+      REQUIRE(universe.getSatellites().size() == atw::InitialSatellitesCount);
+    }
+  }
 }
 
 TEST_CASE("shield onEvent", "[shield]")
@@ -156,29 +229,29 @@ TEST_CASE("shield onEvent", "[shield]")
   REQUIRE(shield.getSegment().p2.y == Approx(expectedSegment.p2.y));
 }
 
-TEST_CASE("asteroid is near Earth", "[asteroid]")
+TEST_CASE("satellite is near Earth", "[satellite]")
 {
   // ARRANGE
   static constexpr auto p = atw::transpose(atw::EarthCenter, { 0.0, atw::EarthRadius });
   static constexpr auto v = atw::Offset{ 2.0, 3.0 };
-  atw::Asteroid asteroid{ p, v };
+  atw::Satellite satellite{ p, v };
 
   // ACT
-  const auto result = asteroid.isNearEarth();
+  const auto result = satellite.isNearEarth();
 
   // ASSERT
   REQUIRE(result);
 }
 
-TEST_CASE("asteroid is not near Earth", "[asteroid]")
+TEST_CASE("satellite is not near Earth", "[satellite]")
 {
   // ARRANGE
-  static constexpr auto p = atw::transpose(atw::EarthCenter, { 0.0, atw::EarthRadius + atw::AsteroidRadius + 1.0 });
+  static constexpr auto p = atw::transpose(atw::EarthCenter, { 0.0, atw::EarthRadius + atw::SatelliteRadius + 1.0 });
   static constexpr auto v = atw::Offset{ 2.0, 3.0 };
-  atw::Asteroid asteroid{ p, v };
+  atw::Satellite satellite{ p, v };
 
   // ACT
-  const auto result = asteroid.isNearEarth();
+  const auto result = satellite.isNearEarth();
 
   // ASSERT
   REQUIRE_FALSE(result);
@@ -187,16 +260,16 @@ TEST_CASE("asteroid is not near Earth", "[asteroid]")
 TEST_CASE("earth update and survive", "[earth]")
 {
   // ARRANGE
-  const std::vector<atw::Asteroid> asteroids{
-    atw::Asteroid{ { 0., 0. }, {} },
-    atw::Asteroid{ { 0., atw::UniverseHeight }, {} },
-    atw::Asteroid{ { atw::UniverseWidth, 0 }, {} },
-    atw::Asteroid{ { atw::UniverseWidth, atw::UniverseHeight }, {} },
+  const std::vector<atw::Satellite> satellites{
+    atw::Satellite{ { 0., 0. }, {} },
+    atw::Satellite{ { 0., atw::UniverseHeight }, {} },
+    atw::Satellite{ { atw::UniverseWidth, 0 }, {} },
+    atw::Satellite{ { atw::UniverseWidth, atw::UniverseHeight }, {} },
   };
   atw::Earth earth{};
 
   // ACT
-  const auto result = earth.update(asteroids);
+  const auto result = earth.update(satellites);
 
   // ASSERT
   REQUIRE(result);
@@ -205,17 +278,17 @@ TEST_CASE("earth update and survive", "[earth]")
 TEST_CASE("earth update and die", "[earth]")
 {
   // ARRANGE
-  const std::vector<atw::Asteroid> asteroids{
-    atw::Asteroid{ { 0., 0. }, {} },
-    atw::Asteroid{ { 0., atw::UniverseHeight }, {} },
-    atw::Asteroid{ { atw::UniverseWidth, 0. }, {} },
-    atw::Asteroid{ { atw::UniverseWidth, atw::UniverseHeight }, {} },
-    atw::Asteroid{ { atw::EarthCenter.x + atw::EarthRadius / 2.0, atw::EarthCenter.y - atw::EarthRadius / 2.0 }, {} },
+  const std::vector<atw::Satellite> satellites{
+    atw::Satellite{ { 0., 0. }, {} },
+    atw::Satellite{ { 0., atw::UniverseHeight }, {} },
+    atw::Satellite{ { atw::UniverseWidth, 0. }, {} },
+    atw::Satellite{ { atw::UniverseWidth, atw::UniverseHeight }, {} },
+    atw::Satellite{ { atw::EarthCenter.x + atw::EarthRadius / 2.0, atw::EarthCenter.y - atw::EarthRadius / 2.0 }, {} },
   };
   atw::Earth earth{};
 
   // ACT
-  const auto result = earth.update(asteroids);
+  const auto result = earth.update(satellites);
 
   // ASSERT
   REQUIRE_FALSE(result);
