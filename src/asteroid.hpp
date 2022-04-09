@@ -33,11 +33,13 @@ class Asteroid
   bool red{};
 
 public:
+  Asteroid() = default;
+
   Asteroid(Point p, Offset v) : position{ p }, velocity{ v } {}
 
   bool isNearEarth() const { return distance(position, EarthCenter) <= EarthRadius + AsteroidRadius; }
 
-  void update(const Shield &shield)
+  bool update(const Shield &shield)
   {
     red = !red;
     position.x += velocity.dx;
@@ -57,7 +59,10 @@ public:
       velocity.dy = -velocity.dy;
       position.x += velocity.dx;
       position.y += velocity.dy;
+      return true;
     }
+
+    return false;
   }
 
   void draw(ftxui::Canvas &canvas) const

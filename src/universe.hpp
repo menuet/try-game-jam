@@ -6,6 +6,7 @@
 #include "earth.hpp"
 #include "shield.hpp"
 #include "utilities.hpp"
+#include <algorithm>
 
 namespace atw {
 
@@ -13,30 +14,28 @@ class Universe
 {
   double fps{};
   int counter{};
-  const std::chrono::steady_clock::time_point initial_time = std::chrono::steady_clock::now();
-  std::chrono::steady_clock::time_point last_update_time = initial_time;
-  std::chrono::steady_clock::time_point last_asteroids_update_time = last_update_time;
-  std::chrono::steady_clock::time_point last_asteroids_creation_time = last_update_time;
-  Point mouse{};
+  std::size_t points{};
+  std::chrono::steady_clock::time_point last_update_time{};
+  std::chrono::steady_clock::time_point last_asteroids_update_time{};
+  std::chrono::steady_clock::time_point last_asteroids_creation_time{};
   Earth earth{};
   Shield shield{};
-  std::vector<Asteroid> asteroids{ randomAsteroid() };
+  std::vector<Asteroid> asteroids{};
 
 public:
-  void onEvent(ftxui::Event &e)
+  Universe(std::chrono::steady_clock::time_point now)
+    : last_update_time{ now }, last_asteroids_update_time{ now }, last_asteroids_creation_time{ now }
   {
-    if (e.is_mouse()) {
-      mouse.x = e.mouse().x * MouseRatioX;
-      mouse.y = e.mouse().y * MouseRatioY;
-    }
+    asteroids.resize(InitialAsteroidsCount);
+    std::generate(begin(asteroids), end(asteroids), randomAsteroid);
   }
 
-  void update()
+  void update(std::chrono::steady_clock::time_point now, const Point &mouse)
   {
     if (!earth.update(asteroids)) return;
 
     ++counter;
-    const auto new_time = std::chrono::steady_clock::now();
+    const auto new_time = now;
     const auto elapsed_time = new_time - last_update_time;
     last_update_time = new_time;
     fps = 1.0
@@ -48,7 +47,8 @@ public:
     if (new_time - last_asteroids_update_time < FrameInterval) return;
     last_asteroids_update_time = new_time;
 
-    for (auto &asteroid : asteroids) asteroid.update(shield);
+    for (auto &asteroid : asteroids)
+      if (asteroid.update(shield)) points += asteroids.size();
 
     if (new_time - last_asteroids_creation_time < AsteroidCreationInterval) return;
     last_asteroids_creation_time = new_time;
@@ -68,7 +68,10 @@ public:
 
     return ftxui::hbox({ universeComponent->Render() | ftxui::borderDouble,
       ftxui::separator(),
-      ftxui::vbox({ ftxui::text("Frame: " + std::to_string(counter)), ftxui::text("FPS: " + std::to_string(fps)) }) });
+      ftxui::vbox({ ftxui::text("Frame: " + std::to_string(counter)),
+        ftxui::text("FPS: " + std::to_string(fps)),
+        ftxui::text("Asteroids: " + std::to_string(asteroids.size())),
+        ftxui::text("Points: " + std::to_string(points)) }) });
   }
 };
 

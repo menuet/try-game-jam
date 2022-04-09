@@ -25,6 +25,7 @@ TEST_CASE("transpose", "[utilities]")
   static constexpr auto p2 = atw::transpose(p, o);
 
   // ASSERT
-  REQUIRE(p2.x == Approx(4.5));
-  REQUIRE(p2.y == Approx(-36.5));
+  static constexpr atw::Point expected{ 4.5, -36.5 };
+  REQUIRE(p2.x == Approx(expected.x));
+  REQUIRE(p2.y == Approx(expected.y));
 }

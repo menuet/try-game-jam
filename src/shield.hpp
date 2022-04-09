@@ -16,7 +16,7 @@ class Shield
   Segment segment{ transpose(ShieldLeft, CenterOffset), transpose(ShieldRight, CenterOffset) };
 
 public:
-  void update(Point mouse)
+  void update(const Point &mouse)
   {
     angle = std::atan2(mouse.y - CenterOffset.dy, mouse.x - CenterOffset.dx) + std::numbers::pi / 2;
     segment = Segment{ transpose(rotate(ShieldLeft, angle), CenterOffset),

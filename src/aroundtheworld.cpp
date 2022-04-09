@@ -5,6 +5,7 @@
 #include "shield.hpp"
 #include "universe.hpp"
 #include "utilities.hpp"
+#include <chrono>
 
 namespace atw {
 
@@ -21,15 +22,19 @@ void play()
     }
   });
 
-  Universe universe{};
+  Universe universe{ std::chrono::steady_clock::now() };
+  Point mouse{};
 
   auto renderer = ftxui::Renderer([&]() {
-    universe.update();
+    universe.update(std::chrono::steady_clock::now(), mouse);
     return universe.draw();
   });
 
   auto events_catcher = ftxui::CatchEvent(renderer, [&](ftxui::Event e) {
-    universe.onEvent(e);
+    if (e.is_mouse()) {
+      mouse.x = e.mouse().x * MouseRatioX;
+      mouse.y = e.mouse().y * MouseRatioY;
+    }
     return false;
   });
 

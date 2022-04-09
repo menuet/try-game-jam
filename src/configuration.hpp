@@ -20,6 +20,7 @@ static constexpr int MouseRatioY = 4;
 static constexpr Point ShieldLeft{ -ShieldSpan, -ShieldRadius };
 static constexpr Point ShieldRight{ +ShieldSpan, -ShieldRadius };
 static constexpr Offset CenterOffset{ EarthCenter.x, EarthCenter.y };
+static constexpr std::size_t InitialAsteroidsCount = 3;
 static constexpr int AsteroidRadius = 2;
 static constexpr auto AsteroidCreationInterval = 5s;
 static constexpr double AsteroidMinSpeed = 1.0;

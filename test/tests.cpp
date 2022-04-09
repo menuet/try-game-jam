@@ -19,53 +19,55 @@ TEST_CASE("Factorials are computed", "[factorial]")
 TEST_CASE("rotate pi", "[utilities]")
 {
   // ARRANGE
-  const atw::Point p{ 12.3, -45.6 };
+  static constexpr atw::Point p{ 12.3, -45.6 };
 
   // ACT
-  const auto p2 = atw::rotate(p, std::numbers::pi);
+  const auto result = atw::rotate(p, std::numbers::pi);
 
   // ASSERT
-  REQUIRE(p2.x == Approx(-12.3));
-  REQUIRE(p2.y == Approx(45.6));
+  static constexpr atw::Point expected{ -12.3, 45.6 };
+  REQUIRE(result.x == Approx(expected.x));
+  REQUIRE(result.y == Approx(expected.y));
 }
 
 TEST_CASE("rotate pi/2", "[utilities]")
 {
   // ARRANGE
-  const atw::Point p{ 12.3, -45.6 };
+  static constexpr atw::Point p{ 12.3, -45.6 };
 
   // ACT
-  const auto p2 = atw::rotate(p, std::numbers::pi / 2);
+  const auto result = atw::rotate(p, std::numbers::pi / 2);
 
   // ASSERT
-  REQUIRE(p2.x == Approx(45.6));
-  REQUIRE(p2.y == Approx(12.3));
+  static constexpr atw::Point expected{ 45.6, 12.3 };
+  REQUIRE(result.x == Approx(expected.x));
+  REQUIRE(result.y == Approx(expected.y));
 }
 
 TEST_CASE("distance point/point", "[utilities]")
 {
   // ARRANGE
-  const atw::Point p1{ 2, 3 };
-  const atw::Point p2{ 5, 6 };
+  static constexpr atw::Point p1{ 2, 3 };
+  static constexpr atw::Point p2{ 5, 6 };
 
   // ACT
-  const auto dist = atw::distance(p1, p2);
+  const auto result = atw::distance(p1, p2);
 
   // ASSERT
-  const auto expectedDist = std::sqrt(3 * 3 + 3 * 3);
-  REQUIRE(dist == Approx(expectedDist));
+  const auto expected = std::sqrt(3 * 3 + 3 * 3);
+  REQUIRE(result == Approx(expected));
 }
 
 TEST_CASE("distance point/line", "[utilities]")
 {
   // ARRANGE
-  const atw::Point p{ 5, 2 };
-  const atw::Segment s{ { 0, -3 }, { 0, 10 } };
+  static constexpr atw::Point p{ 5, 2 };
+  static constexpr atw::Segment s{ { 0, -3 }, { 0, 10 } };
 
   // ACT
-  const auto dist = atw::distance(p, s);
+  const auto result = atw::distance(p, s);
 
   // ASSERT
-  const auto expectedDist = 5.0;
-  REQUIRE(dist == Approx(expectedDist));
+  const auto expected = 5.0;
+  REQUIRE(result == Approx(expected));
 }
