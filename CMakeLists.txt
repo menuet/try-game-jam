@@ -17,12 +17,26 @@ FetchContent_Declare(ftxui
   GIT_TAG v2.0.0
 )
 
+set(FTXUI_BUILD_DOCS OFF CACHE INTERNAL "")
+
 FetchContent_GetProperties(ftxui)
 if(NOT ftxui_POPULATED)
   FetchContent_Populate(ftxui)
   add_subdirectory(${ftxui_SOURCE_DIR} ${ftxui_BINARY_DIR} EXCLUDE_FROM_ALL)
 endif()
 
+
+set(FETCHCONTENT_UPDATES_DISCONNECTED TRUE)
+FetchContent_Declare(smk
+  GIT_REPOSITORY https://github.com/ArthurSonzogni/smk
+  GIT_TAG master
+)
+
+FetchContent_GetProperties(smk)
+if(NOT smk_POPULATED)
+  FetchContent_Populate(smk)
+  add_subdirectory(${smk_SOURCE_DIR} ${smk_BINARY_DIR} EXCLUDE_FROM_ALL)
+endif()
 
 
 # Note: by default ENABLE_DEVELOPER_MODE is True

@@ -5,12 +5,21 @@
 #include "shield.hpp"
 #include "universe.hpp"
 #include "utilities.hpp"
+#include <smk/Audio.hpp>
+#include <smk/Sound.hpp>
+#include <smk/SoundBuffer.hpp>
 #include <chrono>
 
 namespace atw {
 
 void play()
 {
+  smk::Audio audio;
+  auto sound_buffer = smk::SoundBuffer(R"(C:\Users\Pascal\source\repos\try-game-jam\src\starwars.wav)");
+  auto sound = smk::Sound(sound_buffer);
+  sound.Play();
+  std::this_thread::sleep_for(std::chrono::seconds(10));
+
   std::atomic<bool> refresh_ui_continue = true;
 
   auto screen = ftxui::ScreenInteractive::TerminalOutput();

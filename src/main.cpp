@@ -30,8 +30,6 @@ int main(int argc, const char **argv)
                                                // from config.hpp via CMake
 
     atw::play();
-
-    //    consequence_game();
   } catch (const std::exception &e) {
     fmt::print("Unhandled exception in main: {}", e.what());
   }
