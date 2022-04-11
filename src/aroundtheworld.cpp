@@ -21,8 +21,9 @@ void play()
 
   auto events_catcher = ftxui::CatchEvent(renderer, [&](ftxui::Event e) {
     std::optional<Point> mouse{};
-    if (e.is_mouse())
-      mouse.emplace(static_cast<double>(e.mouse().x * MouseRatioX), static_cast<double>(e.mouse().y * MouseRatioY));
+    if (e.is_mouse()) {
+      mouse = Point{ static_cast<double>(e.mouse().x * MouseRatioX), static_cast<double>(e.mouse().y * MouseRatioY) };
+    }
     universe.update(std::chrono::steady_clock::now(), mouse);
     return false;
   });
