@@ -134,8 +134,13 @@ TEST_CASE("universe update", "[universe]")
 
   SECTION("update Intro with Frame events after full scroll")
   {
+    // ARRA?GE
+    static constexpr int LotsOfFrameEvents = 5000;
+
     // ACT
-    for (int i = 0; i < 5000; ++i) universe.update(time + i * atw::IntroTextScrollInterval, { atw::EventType::Frame });
+    for (int i = 0; i < LotsOfFrameEvents; ++i) {
+      universe.update(time + i * atw::IntroTextScrollInterval, { atw::EventType::Frame });
+    }
 
     // ASSERT
     REQUIRE(universe.getState() == atw::State::Intro);
@@ -156,13 +161,18 @@ TEST_CASE("universe update", "[universe]")
 
     SECTION("update Game with Mouse event")
     {
+      // ARRANGE
+      static constexpr int MouseOffsetX = 50;
+      static constexpr int MouseOffsetY = 0;
+      static constexpr double ExpectedAngle = std::numbers::pi / 2.0;
+
       // ACT
       universe.update(time + atw::IntroTextScrollInterval,
-        { atw::EventType::Mouse, { .x = atw::EarthCenter.x + 50, .y = atw::EarthCenter.y } });
+        { atw::EventType::Mouse, { .x = atw::EarthCenter.x + MouseOffsetX, .y = atw::EarthCenter.y + MouseOffsetY } });
 
       // ASSERT
       REQUIRE(universe.getState() == atw::State::Play);
-      REQUIRE(universe.getShield().getAngle() == Approx(std::numbers::pi / 2.0));
+      REQUIRE(universe.getShield().getAngle() == Approx(ExpectedAngle));
       REQUIRE(universe.getPoints() == 0);
       REQUIRE(universe.getSatellites().size() == atw::InitialSatellitesCount);
     }

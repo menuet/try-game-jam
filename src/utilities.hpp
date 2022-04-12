@@ -78,7 +78,7 @@ inline std::string stretchText(std::size_t desiredLength, const std::string &tex
   std::string stretchedText{};
   if (text.length() < desiredLength) {
     const auto desiredGrowth = desiredLength - text.length();
-    const auto existingSpacesCount = std::count(begin(text), end(text), ' ');
+    const auto existingSpacesCount = static_cast<unsigned>(std::count(begin(text), end(text), ' '));
     const auto insertedSpacesCountPerExistingSpace = desiredGrowth / existingSpacesCount;
     for (const auto c : text) {
       stretchedText += c;
