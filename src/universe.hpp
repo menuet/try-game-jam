@@ -162,9 +162,10 @@ public:
   void drawIntroLine(ftxui::Canvas &canvas, int lineIndex, const std::string &line) const
   {
     const auto lineY = introTextOffset + lineIndex * CharHeight * 2;
-    const auto desiredWidth = UniverseWidth - (UniverseHeight - lineY) * 2;
+    const auto offsetY = (UniverseHeight - lineY) * 2;
+    const auto desiredWidth = UniverseWidth - offsetY;
     const auto desiredLength = desiredWidth / CharWidth;
-    const auto stretchedLine = stretchText(desiredLength, line);
+    const auto stretchedLine = stretchText(static_cast<std::size_t>(desiredLength), line);
     const auto lineSize = stretchedLine.length() * CharWidth;
     const auto remainingSize = UniverseWidth > lineSize ? UniverseWidth - lineSize : 0;
     const auto lineX = static_cast<int>(remainingSize / 2);

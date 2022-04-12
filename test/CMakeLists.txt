@@ -27,12 +27,6 @@ target_link_system_libraries(
   ftxui::dom
   ftxui::component)
 
-# disable gcc readability warning in tests because it does not fit well with imbricated CATCH2 SECTIONS style
-target_compile_options(
-	tests
-	PRIVATE
-	$<$<CXX_COMPILER_ID:GNU>:-Wno-readability-function-cognitive-complexity>)
-
 # automatically discover tests that are defined in catch based test files you can modify the unittests. Set TEST_PREFIX
 # to whatever you want, or use different for different binaries
 catch_discover_tests(
