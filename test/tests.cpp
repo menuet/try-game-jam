@@ -95,7 +95,7 @@ TEST_CASE("universe constructor", "[universe]")
   REQUIRE(universe.getState() == atw::State::Intro);
 }
 
-#ifdef _MSC_VER
+#if defined(_MSC_VER) && !defined(__clang__)
 
 // I believe that the warning readability-function-cognitive-complexity should be disabled in tests
 // in order to allow nested TEST_CASEs / SECTIONs style
@@ -225,7 +225,7 @@ TEST_CASE("universe update", "[universe]")
   }
 }
 
-#endif // _MSC_VER
+#endif // defined(_MSC_VER) && !defined(__clang__)
 
 TEST_CASE("shield onEvent", "[shield]")
 {
