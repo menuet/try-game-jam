@@ -134,7 +134,7 @@ TEST_CASE("universe update", "[universe]")
 
   SECTION("update Intro with Frame events after full scroll")
   {
-    // ARRA?GE
+    // ARRANGE
     static constexpr int LotsOfFrameEvents = 5000;
 
     // ACT

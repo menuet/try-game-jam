@@ -61,7 +61,7 @@ class Universe
 
 public:
   explicit Universe(std::chrono::steady_clock::time_point now, std::function<Satellite()> satelliteCreator)
-    : lastSatelliteCreationTime{ now }, lastIntroTextScrollTime{ now }, createSatellite{ std::move(satelliteCreator) }
+    : lastSatelliteCreationTime{ now }, createSatellite{ std::move(satelliteCreator) }, lastIntroTextScrollTime{ now }
   {
     satellites.resize(InitialSatellitesCount);
     std::generate(begin(satellites), end(satellites), createSatellite);
