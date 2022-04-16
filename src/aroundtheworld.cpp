@@ -6,6 +6,7 @@
 #include "shield.hpp"
 #include "universe.hpp"
 #include "utilities.hpp"
+#include "snake.hpp"
 
 namespace atw {
 

@@ -14,7 +14,8 @@ add_executable(
   satellite.hpp
   earth.hpp
   universe.hpp
-  refresher.hpp)
+  refresher.hpp
+  snake.hpp)
 target_link_libraries(
   aroundtheworld
   PRIVATE project_options

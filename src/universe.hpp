@@ -6,6 +6,7 @@
 #include "satellite.hpp"
 #include "shield.hpp"
 #include "utilities.hpp"
+#include "snake.hpp"
 #include <algorithm>
 #include <functional>
 
@@ -58,6 +59,7 @@ class Universe
   };
   int introTextOffset{ UniverseHeight - CharHeight * 2 };
   std::chrono::steady_clock::time_point lastIntroTextScrollTime{};
+  stella::Snake snake;
 
 public:
   explicit Universe(std::chrono::steady_clock::time_point now, std::function<Satellite()> satelliteCreator)
